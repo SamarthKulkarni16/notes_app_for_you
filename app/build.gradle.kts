@@ -8,6 +8,18 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+// Some transitive dependencies (notably Credential Manager's Play Services
+// auth bridge) declare a loose version range for androidx.browser, which
+// Gradle can resolve to a brand-new alpha/stable release that demands a
+// compileSdk far ahead of this project's. Forcing a known-stable, known-
+// compatible version here stops that drift. See:
+// https://github.com/alchemyplatform/aa-sdk/issues/1534
+configurations.all {
+    resolutionStrategy {
+        force("androidx.browser:browser:1.8.0")
+    }
+}
+
 // Load local.properties (gitignored) so SUPABASE_URL etc. are available via
 // project.findProperty() during local builds. CI builds pass these in
 // directly as -P gradle properties instead, so this file is optional there.
