@@ -5,6 +5,14 @@ on:
   push:
     branches: [main]
 
+# contents:write is required for softprops/action-gh-release to create
+# releases and upload assets. Declared explicitly here rather than relying
+# on repo-level default token permissions, which GitHub restricts to
+# read-only by default on many repos (silent "Resource not accessible by
+# integration" failure otherwise).
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -42,8 +50,15 @@ jobs:
         if: always()
         run: rm -f release.keystore
 
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+      - name: Rename APK for public download
+        run: cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/notes-app.apk
+
+      - name: Create GitHub Release with APK
+        uses: softprops/action-gh-release@v3
         with:
-          name: notes-app-release
-          path: app/build/outputs/apk/release/app-release.apk
+          tag_name: v1.0.${{ github.run_number }}
+          name: "Notes v1.0.${{ github.run_number }}"
+          files: app/build/outputs/apk/release/notes-app.apk
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
