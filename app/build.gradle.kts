@@ -4,6 +4,7 @@ import java.io.FileInputStream
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.devtools.ksp")
 }
@@ -31,6 +32,12 @@ val localProperties = Properties().apply {
 }
 fun localOrProjectProperty(key: String): String =
     (localProperties.getProperty(key) ?: project.findProperty(key) as String?) ?: ""
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+}
 
 android {
     namespace = "com.samarth.notesapp"
@@ -90,17 +97,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         compose = true
         buildConfig = true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
     }
 
     packaging {
@@ -129,7 +128,11 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
-    // Supabase-Kt (BOM keeps Auth/Postgrest/Ktor engine versions aligned)
+    // Supabase-Kt (BOM keeps Auth/Postgrest/Ktor engine versions aligned).
+    // Requires Kotlin 2.x — its kotlinx-serialization/kotlinx-io transitive
+    // deps ship Kotlin 2.3-compiled metadata, which Kotlin 1.9.x cannot
+    // read (hard compiler-level incompatibility, not a version range issue).
+    // This is why the project's Kotlin version was bumped to 2.0.21 above.
     implementation(platform("io.github.jan-tennert.supabase:bom:3.6.0"))
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
     implementation("io.github.jan-tennert.supabase:auth-kt")
