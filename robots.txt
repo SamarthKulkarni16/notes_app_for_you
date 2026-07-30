@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://samarthkulkarni16.github.io/notes_app_for_you/sitemap.xml
